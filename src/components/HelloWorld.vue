@@ -12,10 +12,13 @@
           <label>邮箱</label>
           <el-input type="text" v-model="ruleForm.email" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item prop="password" class="item-form"
-        >
+        <el-form-item prop="password" class="item-form">
           <label>密码</label>
           <el-input type="password" v-model="ruleForm.password" autocomplete="off" minlength="6" maxlength="20"></el-input>
+        </el-form-item>
+        <el-form-item prop="checkPass" class="item-form" v-show="model==='register'">
+          <label>确认密码</label>
+          <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item prop="code" class="item-form">
           <label>验证码</label>
@@ -36,7 +39,7 @@
   </div>
 </template>
 <script>
-import {stripscript,emailscript,pwdscript} from '@/components/utils/validate';
+import {stripscript,emailscript,pwdscript} from '@/utils/validate';
 export default {
   name: 'index',
   data() {
@@ -62,6 +65,15 @@ export default {
         callback();
       }
     };
+    var validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'));
+      } else if (value !== this.ruleForm.password) {
+        callback(new Error('两次输入密码不一致!'));
+      } else {
+        callback();
+      }
+    };
     var checkCode = (rule, value, callback) => {
       this.ruleForm.code=stripscript(value);
       value=this.ruleForm.code;
@@ -76,24 +88,31 @@ export default {
     };
     return {
       labelPosition: "top",
+      model:'login',
       ruleForm: {
         email: "",
         password: "",
+        checkPass: "",
         code: "",
       },
       rules: {
         email: [{validator: validateEmail, trigger: "blur"}],
         password: [{validator: validatePassword, trigger: "blur"}],
+        checkPass: [
+          { validator: validatePass2, trigger: 'blur' }
+        ],
         code: [{validator: checkCode, trigger: "blur"}],
       },
       menuTab: [
         {
           txt: "登录",
           current: true,
+          type:'login',
         },
         {
           txt: "注册",
           current: false,
+          type:'register',
         },
       ],
       isActive: true,
@@ -107,6 +126,7 @@ export default {
         el.current = false;
       });
       data.current = true;
+      this.model=data.type;
     },
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
@@ -153,6 +173,7 @@ export default {
   margin-top: 29px;
   }
 .login-form label {
+  text-align: left;
   display:       block;
   margin-bottom: 3px;
   font-size:     14px;
